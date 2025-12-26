@@ -52,35 +52,34 @@ jobs:
           TAG=${{ github.ref_name }}
           PKG_NAME="urr-$TAG"
           mkdir -p "$PKG_NAME"
-          
-          # Copy necessary files into the package
+
+          # Copy files
           cp urr "$PKG_NAME/"
           cp docs/urr.1 "$PKG_NAME/"
           cp README.md "$PKG_NAME/"
           cp COPYING "$PKG_NAME/"
-          
-          # Create a self-contained installer for the user
-          cat << 'EOF' > "$PKG_NAME/install.sh"
-#!/bin/sh
-set -e
-PREFIX=${1:-/usr/local}
-BINDIR="$PREFIX/bin"
-MANDIR="$PREFIX/share/man/man1"
 
-echo "Installing urr to $BINDIR..."
-install -Dm755 urr "$BINDIR/urr"
+          # Create the installer using a standard echo block to avoid EOF issues
+          {
+            echo '#!/bin/sh'
+            echo 'set -e'
+            echo 'PREFIX=${1:-/usr/local}'
+            echo 'BINDIR="$PREFIX/bin"'
+            echo 'MANDIR="$PREFIX/share/man/man1"'
+            echo ''
+            echo 'echo "Installing urr to $BINDIR..."'
+            echo 'install -Dm755 urr "$BINDIR/urr"'
+            echo ''
+            echo 'echo "Installing man page to $MANDIR..."'
+            echo 'install -Dm644 urr.1 "$MANDIR/urr.1"'
+            echo ''
+            echo 'echo "Success! urr has been installed."'
+          } > "$PKG_NAME/install.sh"
 
-echo "Installing man page to $MANDIR..."
-install -Dm644 urr.1 "$MANDIR/urr.1"
-
-echo "Success! urr has been installed."
-EOF
           chmod +x "$PKG_NAME/install.sh"
 
-          # Create the final archive
+          # Archive and Checksum
           tar -czvf "$PKG_NAME.tar.gz" "$PKG_NAME/"
-          
-          # Generate SHA256 checksum for security
           sha256sum "$PKG_NAME.tar.gz" > "$PKG_NAME.sha256"
 
       - name: Create GitHub Release
