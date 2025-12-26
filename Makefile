@@ -51,10 +51,7 @@ install: $(TARGET) man  ## install the program globally
 	install -m 0644 docs/$(TARGET).1 $(MANDIR)
 	@echo "Installing example hosts file to $(SHAREDIR)..."
 	install -d $(SHAREDIR)
-	@echo "# Format: hostname mac-address" > hosts.example
-	@echo "# Example: nas 00:11:22:33:44:55" >> hosts.example
-	install -m 0644 hosts.example $(SHAREDIR)/hosts
-	@rm hosts.example
+	install -m 0644 docs/hosts.example $(SHAREDIR)/hosts
 
 uninstall:  # remove the program from the system
 	@echo "Removing binary from $(BINDIR)..."

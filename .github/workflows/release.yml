@@ -66,6 +66,7 @@ jobs:
             echo 'PREFIX=${1:-/usr/local}'
             echo 'BINDIR="$PREFIX/bin"'
             echo 'MANDIR="$PREFIX/share/man/man1"'
+            echo 'EXDIR="$PREFIX/share/urr/examples"'
             echo ''
             echo 'echo "Installing urr to $BINDIR..."'
             echo 'install -Dm755 urr "$BINDIR/urr"'
@@ -73,7 +74,11 @@ jobs:
             echo 'echo "Installing man page to $MANDIR..."'
             echo 'install -Dm644 urr.1 "$MANDIR/urr.1"'
             echo ''
+            echo 'echo "Installing example hosts to $EXDIR..."'
+            echo 'install -Dm644 hosts.example "$EXDIR/hosts"'
+            echo ''
             echo 'echo "Success! urr has been installed."'
+            echo 'echo "You can find an example config at: $EXDIR/hosts"'
           } > "$PKG_NAME/install.sh"
 
           chmod +x "$PKG_NAME/install.sh"

@@ -1,0 +1,7 @@
+# urr (עוּר) hosts configuration
+# Format: <hostname> <mac-address>
+# Lines starting with # are ignored.
+
+# Example:
+# nas          00:11:22:33:44:55
+# workstation  AA:BB:CC:DD:EE:FF
