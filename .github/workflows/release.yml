@@ -1,0 +1,101 @@
+name: Build and Release urr
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Functional Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential scdoc
+        
+      - name: Build and Run Tests
+        run: |
+          make
+          make test
+
+  release:
+    name: Create Static Release
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential scdoc
+
+      - name: Build Static Binary and Manpage
+        run: |
+          # Build a fully static, stripped, optimized binary
+          gcc -Wall -Wextra -O3 -static -s -o urr src/urr.c
+          # Generate the man page from scd
+          make man
+
+      - name: Prepare Release Package
+        run: |
+          TAG=${{ github.ref_name }}
+          PKG_NAME="urr-$TAG"
+          mkdir -p "$PKG_NAME"
+          
+          # Copy necessary files into the package
+          cp urr "$PKG_NAME/"
+          cp docs/urr.1 "$PKG_NAME/"
+          cp README.md "$PKG_NAME/"
+          cp COPYING "$PKG_NAME/"
+          
+          # Create a self-contained installer for the user
+          cat << 'EOF' > "$PKG_NAME/install.sh"
+#!/bin/sh
+set -e
+PREFIX=${1:-/usr/local}
+BINDIR="$PREFIX/bin"
+MANDIR="$PREFIX/share/man/man1"
+
+echo "Installing urr to $BINDIR..."
+install -Dm755 urr "$BINDIR/urr"
+
+echo "Installing man page to $MANDIR..."
+install -Dm644 urr.1 "$MANDIR/urr.1"
+
+echo "Success! urr has been installed."
+EOF
+          chmod +x "$PKG_NAME/install.sh"
+
+          # Create the final archive
+          tar -czvf "$PKG_NAME.tar.gz" "$PKG_NAME/"
+          
+          # Generate SHA256 checksum for security
+          sha256sum "$PKG_NAME.tar.gz" > "$PKG_NAME.sha256"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            urr-${{ github.ref_name }}.tar.gz
+            urr-${{ github.ref_name }}.sha256
+          body: |
+            ## urr (עוּר) Release ${{ github.ref_name }}
+            
+            This release contains a **statically linked** binary for x86_64 Linux.
+            
+            ### Installation
+            1. Download the `.tar.gz`
+            2. Extract and run `sudo ./install.sh`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
