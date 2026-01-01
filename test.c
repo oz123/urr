@@ -13,9 +13,9 @@ void setup_test_env() {
     mkdir(TEST_DIR, 0700);
     FILE *fp = fopen(TEST_HOSTS, "w");
     if (fp) {
-        fprintf(fp, "nas 00:11:22:33:44:55\n");
-        fprintf(fp, "workpc AA:BB:CC:DD:EE:FF\n");
-        fprintf(fp, "rpi 11-22-CC-DD-EE-FF\n");
+        fprintf(fp, "00:11:22:33:44:55 nas\n");
+        fprintf(fp, "AA:BB:CC:DD:EE:FF workpc\n");
+        fprintf(fp, "11-22-CC-DD-EE-FF rpi\n");
         fprintf(fp, "# comment_line 11:22:33:44:55:66\n");
         fclose(fp);
     }

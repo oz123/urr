@@ -101,7 +101,7 @@ void send_wol(unsigned char *mac) {
     close(sock);
 }
 
-int main(int argc, char *argv[]) {
+int main(const int argc, char *argv[]) {
     char *filename = NULL;
     char *input_arg = NULL;
     unsigned char bin_mac[6];
@@ -114,27 +114,47 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // 1. First Attempt: Is the argument itself a valid MAC?
+    // 1. First Attempt: Try to validate and parse as MAC address
     if (validate_and_parse_mac(input_arg, bin_mac) == 0) {
+        // Valid MAC address - send directly
         send_wol(bin_mac);
         printf("Direct MAC detected. Magic packet sent to %s\n", input_arg);
-    }
-    // 2. Second Attempt: Treat it as a hostname and look in the file
-    else {
-        if (lookup_mac_in_file(filename, input_arg, resolved_mac) == 0) {
+    } else {
+        // 2. Not a valid MAC - treat as hostname and search files
+        int found = 0;
+        char *source_file = NULL;
+
+        // Try user-specified file first (if provided)
+        if (filename && lookup_mac_in_file(filename, input_arg, resolved_mac) == 0) {
+            found = 1;
+            source_file = filename;
+        }
+        // If not found in user file, try /etc/ethers
+        else if (lookup_mac_in_file("/etc/ethers", input_arg, resolved_mac) == 0) {
+            found = 1;
+            source_file = "/etc/ethers";
+        }
+
+        if (found) {
             // Validate the MAC we found in the file
             if (validate_and_parse_mac(resolved_mac, bin_mac) == 0) {
                 send_wol(bin_mac);
                 printf("Resolved host '%s' to %s in %s. Packet sent.\n",
-                        input_arg, resolved_mac, filename);
+                        input_arg, resolved_mac, source_file);
             } else {
                 fprintf(stderr, "Error: MAC '%s' in file %s is invalid.\n",
-                        resolved_mac, filename);
+                        resolved_mac, source_file);
                 return 1;
             }
         } else {
-            fprintf(stderr, "Error: '%s' is not a valid MAC and not found in %s\n",
-                    input_arg, filename);
+            // Build error message showing which files were checked
+            if (filename) {
+                fprintf(stderr, "Error: '%s' is not a valid MAC and not found in %s or /etc/ethers\n",
+                        input_arg, filename);
+            } else {
+                fprintf(stderr, "Error: '%s' is not a valid MAC and not found in /etc/ethers\n",
+                        input_arg);
+            }
             return 1;
         }
     }
