@@ -52,14 +52,17 @@ First, add your machines to ~/.config/urr/hosts:
 
 ```plaintext
 # hostname   mac-address
-nas          00:11:22:33:44:55
-gaming-rig   AA:BB:CC:DD:EE:FF
+00:11:22:33:44:55 nas
+AA:BB:CC:DD:EE:FF gaming-rig
 ```
 
 Then simply run:
 ```
 $ urr nas
 ```
+
+Also, /etc/ethers is supported too. See `man 5 ethers`.
+
 
 3. Using a Custom File
 
