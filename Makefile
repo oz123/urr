@@ -19,6 +19,7 @@ PREFIX  = /usr/local
 BINDIR  = $(PREFIX)/bin
 MANDIR  = $(PREFIX)/share/man/man1
 SHAREDIR = $(PREFIX)/share/urr/examples
+COMPDIR = $(PREFIX)/share/bash-completion/completions
 
 all: $(TARGET)  ## default build target
 
@@ -47,16 +48,20 @@ install: $(TARGET) man  ## install the program globally
 	install -d $(BINDIR)
 	install -m 0755 $(TARGET) $(BINDIR)
 	@echo "Installing man page to $(MANDIR)..."
-	install -d $(MANDIR)	
+	install -d $(MANDIR)
 	install -m 0644 docs/$(TARGET).1 $(MANDIR)
 	@echo "Installing example hosts file to $(SHAREDIR)..."
 	install -d $(SHAREDIR)
 	install -m 0644 docs/hosts.example $(SHAREDIR)/hosts
+	@echo "Installing bash completion to $(COMPDIR)..."
+	install -d $(COMPDIR)
+	install -m 0644 completions/$(TARGET).bash $(COMPDIR)/$(TARGET)
 
 uninstall:  # remove the program from the system
 	@echo "Removing binary from $(BINDIR)..."
 	rm -f $(BINDIR)/$(TARGET)
 	rm -f $(MANDIR)/$(TARGET).1
+	rm -f $(COMPDIR)/$(TARGET)
 	@echo "Note: Configuration in $(CONFDIR) was left intact. Delete it manually if desired."
 
 
