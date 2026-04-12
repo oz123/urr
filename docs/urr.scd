@@ -32,7 +32,8 @@ Urr is imperative: "wake up!" in Hebrew.
 # FILES
 
 *~/.config/urr/hosts*
-	The default database file. The format is "hostname mac-address" per line.
+	The default database file. The format is "mac-address hostname" per line,
+	matching the /etc/ethers(5) format.
 	Lines starting with '#' are ignored.
 
 */usr/local/share/urr/examples/hosts*
